@@ -14,17 +14,18 @@ def hashpath(path):
 def store(path):
 	try:
 		st = os.stat(path)
+		rdb.hset(path,'size',st.st_size)
+		rdb.hset(path,'mtime',st.st_mtime)
+		rdb.hset(path,'basename', os.path.basename(path))
+		rdb.expire(path,3600) #set a 1 hour expiry on all keys
+		return st.st_size
+	
 	except OSError as e:
 		if e.errno == errno.ENOENT:
 			print "no such file or directory: ", path 
 			return 0	
-
-	rdb.hset(path,'size',st.st_size)
-	rdb.hset(path,'mtime',st.st_mtime)
-	rdb.hset(path,'basename', os.path.basename(path))
-	rdb.expire(path,3600) #set a 1 hour expiry on all keys
 	
-	return st.st_size
+
 
 def fetch(path):
 	return rdb.hget(path,'size')
